@@ -1,5 +1,9 @@
 # calc的测试用例创建unittest
+import sys
 import unittest
+
+sys.path.append("..")
+print(sys.path)
 
 from python.calc import Calc
 
