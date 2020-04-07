@@ -1,43 +1,103 @@
 import sys
-import pytest
 
-sys.path.append("..")
+import pytest
+import yaml
 
 from python.calc import Calc
 
-test_data_add = [
-    (1, 2, 3),  # 正数
-    (1.4, 1.5, 2.9),  # 小数
-    (-1, -4, -5)  # 负数
-]
 
-test_data_div = [
-    (4, 2, 2),  # 整数整除
-    (7, 3, 2),  # 整数不整除
-    (-4, -2, 3),  # 负数整除
-    (-7, -2, 3),  # 负数不整除
-    (7.0, 3.5, 2),  # 小数整除
-    (7.0, 2.0, 3.5)  # 小数不整除
-]
+def setup_module():
+    print("setup_module")
 
+
+#@pytest.fixture(scope="module")
+def data():
+    with open("test_pytest.data.yaml") as f:
+        return yaml.load(f)
+
+def steps():
+    with open("test_pytest.steps.yaml") as f:
+        return yaml.load(f)
 
 class TestCalc:
+
+    @classmethod
+    def setup_class(cls):
+        print("setup_class")
+        cls.calc = Calc()
+
+    def setup_method(self):
+        print("setup_method")
+
     def setup(self):
-        self.calc = Calc()
+        print("setup")
 
-    @pytest.mark.parametrize("a, b, result", test_data_add)
-    def test_add(self, a, b, result):
-        assert self.calc.add(a, b) == result
+    def teardown(self):
+        print("teardown")
 
-    @pytest.mark.parametrize("a, b, result", test_data_div)
-    def test_div(self, a, b, result):
-        assert self.calc.div(a, b) == result
+    def teardown_method(self):
+        print("teardown_method")
 
-    def test_div_exception(self):
-        with pytest.raises(ZeroDivisionError):
-            self.calc.div(3, 0)
+    @pytest.mark.demo2
+    def test_add(self):
+        print("add")
+        assert self.calc.add(1, 2) == 3
+        assert TestCalc.calc.add(1, 2) == 3
+
+    def test_div(self):
+        print("div")
+        assert self.calc.div(1, 2) == 0.5
+
+    # todo: fixture与参数化合并使用
+    @pytest.mark.demo
+    @pytest.mark.parametrize("a, b, r", data())
+    def test_params(self, a, b, r):
+        print("params")
+        data = (a, b)
+        self.steps(data, r)
+        # assert self.calc.add2(data) == r
+        # assert self.calc.add(*data) ==r
+
+    def steps(self, data, r):
+        test_steps = steps()
+        for step in test_steps:
+            if step == "add":
+                assert self.calc.add(*data) == r
+            elif step == "add2":
+                assert self.calc.add2(data) == r
+
+class Demo:
+    kind = 0
+
+    def __init__(self):
+        self.name = ""
 
 
+class TestCalc2:
 
-if __name__ == '__main__':
-    pytest.main(['-v'])
+    @classmethod
+    def setup_class(cls):
+        print("setup_class")
+
+    def test_demo1(self):
+        demo_1 = Demo()
+        demo_2 = Demo()
+        print(demo_1.kind)
+        print(demo_2.kind)
+        print(Demo.kind)
+
+        print("class change var")
+        Demo.kind = 1
+
+        print(demo_1.kind)
+        print(demo_2.kind)
+        print(Demo.kind)
+
+        print("instance change var")
+        demo_1.kind += 1
+        print(demo_1.kind)
+        print(demo_2.kind)
+        print(Demo.kind)
+
+    def test_demo2(self):
+        assert Calc.add(self, 1, 2) == 3
