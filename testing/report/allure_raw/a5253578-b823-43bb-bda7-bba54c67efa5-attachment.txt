@@ -1,0 +1,12 @@
+setup_class
+0
+0
+0
+class change var
+1
+1
+1
+instance change var
+2
+1
+1
